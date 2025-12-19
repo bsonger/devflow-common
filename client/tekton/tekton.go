@@ -36,7 +36,7 @@ func GetPipeline(ctx context.Context, namespace string, name string) (*v1.Pipeli
 	return TektonClient.TektonV1().Pipelines(namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
-func CreatePipelineRun(ctx context.Context, pipelineName string, prParams []tknv1.Param) (*tknv1.PipelineRun, error) {
+func CreatePipelineRun(ctx context.Context, pipelineName string, labels map[string]string, prParams []tknv1.Param) (*tknv1.PipelineRun, error) {
 	ctx, span := otel.Start(ctx, tracerName, "Tekton.CreatePipelineRun")
 	defer span.End()
 	// 随机生成一个 PipelineRun 名称
@@ -51,6 +51,7 @@ func CreatePipelineRun(ctx context.Context, pipelineName string, prParams []tknv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      prName,
 			Namespace: "tekton-pipelines",
+			Labels:    labels,
 		},
 		Spec: tknv1.PipelineRunSpec{
 			PipelineRef: &tknv1.PipelineRef{
