@@ -1,7 +1,11 @@
 package model
 
 import (
+	"fmt"
+	appv1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 )
 
 type JobStatus string
@@ -31,4 +35,47 @@ type Job struct {
 	Status          JobStatus          `bson:"status" json:"status"`
 }
 
-func (*Job) CollectionName() string { return "job" }
+func (j *Job) CollectionName() string { return "job" }
+
+func (j *Job) GenerateApplication() *appv1.Application {
+	env := os.Getenv("env")
+	var path string
+
+	if env != "" {
+		path = fmt.Sprintf("%s/%s/overlays/%s", j.ApplicationName, j.ManifestName, os.Getenv("env"))
+	} else {
+		path = fmt.Sprintf("%s/%s/base", j.ApplicationName, j.ManifestName)
+	}
+
+	app := &appv1.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "argoproj.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: j.ApplicationName,
+			Labels: map[string]string{
+				"job_id": j.ID.Hex(),
+			},
+		},
+		Spec: appv1.ApplicationSpec{
+			Project: "default",
+			Source: &appv1.ApplicationSource{
+				RepoURL:        manifestRepo.Address,
+				TargetRevision: "main",
+				Path:           path,
+			},
+			Destination: appv1.ApplicationDestination{
+				Server:    "https://kubernetes.default.svc",
+				Namespace: "apps",
+			},
+			SyncPolicy: &appv1.SyncPolicy{
+				Automated: &appv1.SyncPolicyAutomated{
+					Prune:    true, // 自动删除
+					SelfHeal: true, // 自动修复漂移
+				},
+			},
+		},
+	}
+	return app
+}
