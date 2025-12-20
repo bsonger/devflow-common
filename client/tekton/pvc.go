@@ -3,14 +3,12 @@ package tekton
 import (
 	"context"
 	"encoding/json"
+	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	"k8s.io/utils/pointer"
-
-	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 )
 
 // CreatePVC 创建一个 PVC
@@ -41,13 +39,10 @@ func CreatePVC(ctx context.Context, namespace, pvcName, storageClassName string,
 
 // PatchPVCOwner 设置 PVC 的 OwnerReference 指向 PipelineRun
 func PatchPVCOwner(ctx context.Context, pvc *corev1.PersistentVolumeClaim, pr *tknv1.PipelineRun) error {
-	owner := metav1.OwnerReference{
-		APIVersion: pr.APIVersion,
-		Kind:       pr.Kind,
-		Name:       pvc.Name, // 也可以改为 pipelineRunName
-		UID:        pr.UID,
-		Controller: pointer.Bool(true),
-	}
+	owner := metav1.NewControllerRef(
+		pr,
+		tknv1.SchemeGroupVersion.WithKind("PipelineRun"),
+	)
 
 	// 将新的 OwnerReference append 到 PVC
 	oldData, err := json.Marshal(pvc)
@@ -55,7 +50,7 @@ func PatchPVCOwner(ctx context.Context, pvc *corev1.PersistentVolumeClaim, pr *t
 		return err
 	}
 
-	pvc.OwnerReferences = append(pvc.OwnerReferences, owner)
+	pvc.OwnerReferences = append(pvc.OwnerReferences, *owner)
 	newData, err := json.Marshal(pvc)
 	if err != nil {
 		return err
