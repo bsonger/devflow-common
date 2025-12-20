@@ -17,7 +17,6 @@ import (
 func CreatePVC(ctx context.Context, namespace, pvcName, storageClassName string, size string) (*corev1.PersistentVolumeClaim, error) {
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:         pvcName,
 			GenerateName: pvcName + "-",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
