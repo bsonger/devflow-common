@@ -1,4 +1,4 @@
-package config
+package consul
 
 import (
 	"go.uber.org/zap"
