@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/bsonger/devflow-common/client/logging"
 	"github.com/bsonger/devflow-common/model"
-	"github.com/bsonger/devflow/pkg/logging"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"

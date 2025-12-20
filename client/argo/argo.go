@@ -8,7 +8,6 @@ import (
 	appv1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	argoclient "github.com/argoproj/argo-cd/v3/pkg/client/clientset/versioned"
 	"github.com/bsonger/devflow-common/client/logging"
-	"github.com/bsonger/devflow/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,14 +28,14 @@ func InitArgoCdClient(config *rest.Config) error {
 
 // CreateApplication 创建或更新 ArgoCD Application
 func CreateApplication(ctx context.Context, app *appv1.Application) error {
-	applications := client.ArgoCdClient.ArgoprojV1alpha1().Applications(namespace)
+	applications := ArgoCdClient.ArgoprojV1alpha1().Applications(namespace)
 
 	_, err := applications.Create(ctx, app, metav1.CreateOptions{})
 	return err
 }
 
 func UpdateApplication(ctx context.Context, app *appv1.Application) error {
-	applications := client.ArgoCdClient.ArgoprojV1alpha1().Applications(namespace)
+	applications := ArgoCdClient.ArgoprojV1alpha1().Applications(namespace)
 
 	current, err := applications.Get(ctx, app.Name, metav1.GetOptions{})
 	if err != nil {
