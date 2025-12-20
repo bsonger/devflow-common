@@ -32,7 +32,7 @@ const (
 )
 
 const (
-	traceIDAnnotation = "otel.devflow.io/trace-id"
+	TraceIDAnnotation = "otel.devflow.io/trace-id"
 	SpanAnnotation    = "otel.devflow.io/parent-span-id"
 )
 
