@@ -14,7 +14,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/bsonger/devflow-common/client/otel"
-	"github.com/bsonger/devflow-common/model"
 )
 
 var TektonClient *tektonclient.Clientset
@@ -24,7 +23,7 @@ const tracerName = "tekton"
 func InitTektonClient(ctx context.Context, config *rest.Config, logger *zap.Logger) error {
 
 	var err error
-	TektonClient, err = tektonclient.NewForConfig(model.KubeConfig)
+	TektonClient, err = tektonclient.NewForConfig(config)
 	if err != nil {
 		return err
 	}
