@@ -8,15 +8,18 @@ import (
 	tektonclient "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 var TektonClient *tektonclient.Clientset
+var KubeClient *kubernetes.Clientset
 
 func InitTektonClient(ctx context.Context, config *rest.Config, logger *zap.Logger) error {
 
 	var err error
 	TektonClient, err = tektonclient.NewForConfig(config)
+	KubeClient, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}

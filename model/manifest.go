@@ -75,7 +75,7 @@ func (m *Manifest) GetStep(taskName string) *ManifestStep {
 	return nil
 }
 
-func (m *Manifest) GeneratePipelineRun(pipelineName string) *tknv1.PipelineRun {
+func (m *Manifest) GeneratePipelineRun(pipelineName string, pvc string) *tknv1.PipelineRun {
 
 	// 构造 PipelineRun 对象
 	pipelineRun := &tknv1.PipelineRun{
@@ -95,7 +95,7 @@ func (m *Manifest) GeneratePipelineRun(pipelineName string) *tknv1.PipelineRun {
 				{
 					Name: "source",
 					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-						ClaimName: "git-source-pvc",
+						ClaimName: pvc,
 					},
 				},
 				{
