@@ -2,10 +2,14 @@ package model
 
 import (
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
+	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -25,6 +29,11 @@ const (
 	StepRunning   StepStatus = "Running"
 	StepSucceeded StepStatus = "Succeeded"
 	StepFailed    StepStatus = "Failed"
+)
+
+const (
+	traceIDAnnotation = "otel.devflow.io/trace-id"
+	SpanAnnotation    = "otel.devflow.io/parent-span-id"
 )
 
 type Manifest struct {
@@ -64,4 +73,102 @@ func (m *Manifest) GetStep(taskName string) *ManifestStep {
 		}
 	}
 	return nil
+}
+
+func (m *Manifest) GeneratePipelineRun(pipelineName string) *tknv1.PipelineRun {
+
+	// 构造 PipelineRun 对象
+	pipelineRun := &tknv1.PipelineRun{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PipelineRun",
+			APIVersion: "tekton.dev/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: pipelineName + "-run-",
+		},
+		Spec: tknv1.PipelineRunSpec{
+			PipelineRef: &tknv1.PipelineRef{
+				Name: pipelineName,
+			},
+			Params: m.GeneratePipelineRunParams(),
+			Workspaces: []tknv1.WorkspaceBinding{
+				{
+					Name: "source",
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "git-source-pvc",
+					},
+				},
+				{
+					Name: "dockerconfig",
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: "aliyun-docker-config",
+					},
+				},
+				{
+					Name: "ssh",
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: "git-ssh-secret",
+					},
+				},
+			},
+		},
+	}
+	return pipelineRun
+}
+
+func (m *Manifest) GeneratePipelineRunParams() []tknv1.Param {
+
+	imageTag := m.Name
+
+	if m.Branch != "main" {
+		imageTag = fmt.Sprintf("%s-%s", m.Branch, imageTag)
+	}
+
+	safeImageTag := strings.ReplaceAll(imageTag, "/", "-")
+	// 构造 PipelineRun 参数
+	prParams := []tknv1.Param{
+		{
+			Name: "git-url",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: m.GitRepo,
+			},
+		},
+		{
+			Name: "git-revision",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: m.Branch,
+			},
+		},
+		{
+			Name: "image-registry",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: "registry.cn-hangzhou.aliyuncs.com/devflow",
+			},
+		},
+		{
+			Name: "name",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: m.ApplicationName,
+			},
+		},
+		{
+			Name: "image-tag",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: safeImageTag,
+			},
+		},
+		{
+			Name: "manifest-name",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: m.Name,
+			},
+		},
+	}
+	return prParams
 }
