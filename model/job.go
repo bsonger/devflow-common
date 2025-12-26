@@ -21,6 +21,8 @@ const (
 	JobInstall  string = "Install"
 	JobUpgrade  string = "Upgrade"
 	JobRollback string = "Rollback"
+
+	project = "app"
 )
 
 type Job struct {
@@ -59,7 +61,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 			},
 		},
 		Spec: appv1.ApplicationSpec{
-			Project: "default",
+			Project: project,
 			Source: &appv1.ApplicationSource{
 				RepoURL:        manifestRepo.Address,
 				TargetRevision: "main",

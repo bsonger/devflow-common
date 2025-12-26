@@ -13,7 +13,9 @@ import (
 
 var ArgoCdClient *argoclient.Clientset
 
-const namespace = "argo-cd"
+const (
+	namespace = "argo-cd"
+)
 
 // InitArgoCdClient 初始化 ArgoCD client
 func InitArgoCdClient(config *rest.Config) error {

@@ -6,18 +6,15 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-func InitMetrics() error {
-	// Prometheus Exporter
+func InitMetricProvider() error {
 	exporter, err := prometheus.New()
 	if err != nil {
 		return err
 	}
 
-	// MeterProvider
 	provider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(exporter),
 	)
-
 	otel.SetMeterProvider(provider)
 	return nil
 }
