@@ -69,7 +69,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 			},
 			Destination: appv1.ApplicationDestination{
 				Server:    "https://kubernetes.default.svc",
-				Namespace: "apps",
+				Namespace: "app",
 			},
 			SyncPolicy: &appv1.SyncPolicy{
 				Automated: &appv1.SyncPolicyAutomated{
