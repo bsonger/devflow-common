@@ -38,15 +38,20 @@ const (
 
 type Manifest struct {
 	BaseModel       `bson:",inline"`
-	ApplicationId   primitive.ObjectID `json:"application_id" bson:"application_id"` // 关联 Application
-	Name            string             `json:"name" bson:"name"`
-	ApplicationName string             `json:"application_name" bson:"application_name"`
-	Branch          string             `json:"branch" bson:"branch"`           // git branch
-	GitRepo         string             `json:"git_repo" bson:"git_repo"`       // 对应 Application repo
-	Image           string             `json:"image" bson:"image"`             // Docker 镜像地址
-	PipelineID      string             `json:"pipeline_id" bson:"pipeline_id"` // Tekton PipelineRun ID
-	Steps           []ManifestStep     `json:"steps" bson:"steps"`             // 每个步骤状态
-	Status          ManifestStatus     `json:"status" bson:"status"`           // running, success, failed
+	ApplicationId   primitive.ObjectID  `json:"application_id" bson:"application_id"` // 关联 Application
+	Name            string              `json:"name" bson:"name"`
+	ApplicationName string              `json:"application_name" bson:"application_name"`
+	Branch          string              `json:"branch" bson:"branch"`     // git branch
+	GitRepo         string              `json:"git_repo" bson:"git_repo"` // 对应 Application repo
+	Replica         *int32              `bson:"replica,omitempty" json:"replica,omitempty"`
+	Type            ReleaseType         `bson:"type" json:"type"`
+	ConfigMaps      []*ConfigMap        `bson:"config_maps,omitempty" json:"config_maps,omitempty"`
+	Service         Service             `bson:"service" json:"service"`
+	Internet        Internet            `bson:"internet" json:"internet"`
+	Envs            map[string][]EnvVar `bson:"envs,omitempty" json:"envs,omitempty"`
+	PipelineID      string              `json:"pipeline_id" bson:"pipeline_id"` // Tekton PipelineRun ID
+	Steps           []ManifestStep      `json:"steps" bson:"steps"`             // 每个步骤状态
+	Status          ManifestStatus      `json:"status" bson:"status"`           // running, success, failed
 }
 
 type ManifestStep struct {

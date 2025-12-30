@@ -6,9 +6,16 @@ type Application struct {
 	BaseModel `bson:",inline"`
 
 	Name               string              `bson:"name" json:"name"`
+	ProjectName        string              `bson:"project_name" json:"project_name"`
 	RepoURL            string              `bson:"repo_url" json:"repo_url"`
 	ActiveManifestName string              `bson:"active_manifest_name" json:"active_manifest_name"`
 	ActiveManifestID   *primitive.ObjectID `bson:"active_manifest_id,omitempty" json:"active_manifest_id,omitempty"`
+	Replica            *int32              `bson:"replica,omitempty" json:"replica,omitempty"`
+	Type               ReleaseType         `bson:"type" json:"type"`
+	ConfigMaps         []*ConfigMap        `bson:"config_maps,omitempty" json:"config_maps,omitempty"`
+	Service            Service             `bson:"service" json:"service"`
+	Internet           Internet            `bson:"internet" json:"internet"`
+	Envs               map[string][]EnvVar `bson:"envs,omitempty" json:"envs,omitempty"`
 	// 当前状态（来自 Job 的结果）
 	Status string `bson:"status" json:"status"` // Running / Failed / Degraded
 }
