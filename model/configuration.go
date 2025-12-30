@@ -10,3 +10,5 @@ type File struct {
 	Name    string `bson:"name" json:"name"`
 	Content string `bson:"content" json:"content"`
 }
+
+func (Configuration) CollectionName() string { return "configuration" }
