@@ -1,7 +1,5 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
-
 type (
 	Internet    string
 	ReleaseType string
@@ -27,9 +25,9 @@ type Port struct {
 }
 
 type ConfigMap struct {
-	Name      string                          `bson:"name" json:"name"`
-	MountPath string                          `bson:"mount_path" json:"mount_path"`
-	FilesPath map[string][]primitive.ObjectID `bson:"files_path" json:"files_path"`
+	Name      string            `bson:"name" json:"name"`
+	MountPath string            `bson:"mount_path" json:"mount_path"`
+	FilesPath map[string]string `bson:"files_path" json:"files_path"`
 }
 
 type EnvVar struct {
