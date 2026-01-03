@@ -57,7 +57,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 			Project: project,
 			Source: &appv1.ApplicationSource{
 				RepoURL: manifestRepo.Address,
-				Path:    ".",
+				Path:    "./",
 				Plugin: &appv1.ApplicationSourcePlugin{
 					Name: "plugin",
 					Parameters: []appv1.ApplicationSourcePluginParameter{
