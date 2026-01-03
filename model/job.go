@@ -49,6 +49,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 		path = fmt.Sprintf("%s/%s/base", j.ApplicationName, j.ManifestName)
 	}
 
+	manifestID := j.ManifestID.Hex()
 	app := &appv1.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
@@ -66,10 +67,23 @@ func (j *Job) GenerateApplication() *appv1.Application {
 				RepoURL:        manifestRepo.Address,
 				TargetRevision: "main",
 				Path:           path,
+				Plugin: &appv1.ApplicationSourcePlugin{
+					Name: "plugin",
+					Parameters: []appv1.ApplicationSourcePluginParameter{
+						appv1.ApplicationSourcePluginParameter{
+							Name:    "env",
+							String_: &env,
+						},
+						appv1.ApplicationSourcePluginParameter{
+							Name:    "manifest-id",
+							String_: &manifestID,
+						},
+					},
+				},
 			},
 			Destination: appv1.ApplicationDestination{
 				Server:    "https://kubernetes.default.svc",
-				Namespace: "app",
+				Namespace: j.ProjectName,
 			},
 			SyncPolicy: &appv1.SyncPolicy{
 				Automated: &appv1.SyncPolicyAutomated{
