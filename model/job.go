@@ -40,7 +40,7 @@ type Job struct {
 func (j *Job) CollectionName() string { return "job" }
 
 func (j *Job) GenerateApplication() *appv1.Application {
-	env := os.Getenv("env")
+	env := os.Getenv("Env")
 	var path string
 
 	if env != "" {
