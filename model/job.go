@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	appv1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,13 +40,6 @@ func (j *Job) CollectionName() string { return "job" }
 
 func (j *Job) GenerateApplication() *appv1.Application {
 	env := os.Getenv("Env")
-	var path string
-
-	if env != "" {
-		path = fmt.Sprintf("%s/%s/overlays/%s", j.ApplicationName, j.ManifestName, os.Getenv("env"))
-	} else {
-		path = fmt.Sprintf("%s/%s/base", j.ApplicationName, j.ManifestName)
-	}
 
 	manifestID := j.ManifestID.Hex()
 	app := &appv1.Application{
@@ -64,9 +56,8 @@ func (j *Job) GenerateApplication() *appv1.Application {
 		Spec: appv1.ApplicationSpec{
 			Project: project,
 			Source: &appv1.ApplicationSource{
-				RepoURL:        manifestRepo.Address,
-				TargetRevision: "main",
-				Path:           path,
+				RepoURL: manifestRepo.Address,
+				Path:    ".",
 				Plugin: &appv1.ApplicationSourcePlugin{
 					Name: "plugin",
 					Parameters: []appv1.ApplicationSourcePluginParameter{
