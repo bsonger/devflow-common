@@ -14,7 +14,7 @@ import (
 var ArgoCdClient *argoclient.Clientset
 
 const (
-	namespace = "argo-cd"
+	namespace = "argocd"
 )
 
 // InitArgoCdClient 初始化 ArgoCD client
