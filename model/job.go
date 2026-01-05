@@ -50,10 +50,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: j.ApplicationName,
-			Labels: map[string]string{
-				"JobIDLabel": j.ID.Hex(),
-			},
+			Name: j.ApplicationName
 		},
 		Spec: appv1.ApplicationSpec{
 			Project: project,
