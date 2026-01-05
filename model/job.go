@@ -21,6 +21,8 @@ const (
 	JobUpgrade  string = "Upgrade"
 	JobRollback string = "Rollback"
 
+	JobIDLabel string = "devflow.io/job-id"
+
 	project = "app"
 )
 
