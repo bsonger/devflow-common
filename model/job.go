@@ -52,7 +52,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: j.ApplicationName,
 			Labels: map[string]string{
-				"job_id": j.ID.Hex(),
+				"JobIDLabel": j.ID.Hex(),
 			},
 		},
 		Spec: appv1.ApplicationSpec{
