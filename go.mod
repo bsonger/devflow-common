@@ -4,6 +4,7 @@ go 1.25.4
 
 require (
 	github.com/argoproj/argo-cd/v3 v3.2.2
+	github.com/grafana/pyroscope-go v1.2.7
 	github.com/hashicorp/consul/api v1.33.0
 	github.com/tektoncd/pipeline v1.7.0
 	go.mongodb.org/mongo-driver v1.17.6
@@ -95,6 +96,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
