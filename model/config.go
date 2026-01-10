@@ -6,12 +6,13 @@ var C *Config
 var KubeConfig *rest.Config
 
 type Config struct {
-	Server *ServerConfig `mapstructure:"server" json:"server" yaml:"server"`
-	Mongo  *MongoConfig  `mapstructure:"mongo"  json:"mongo"  yaml:"mongo"`
-	Log    *LogConfig    `mapstructure:"log"    json:"log"    yaml:"log"`
-	Otel   *OtelConfig   `mapstructure:"otel"   json:"otel"   yaml:"otel"`
-	Repo   *Repo         `mapstructure:"repo"   json:"repo"   yaml:"repo"`
-	Consul *Consul       `mapstructure:"consul" json:"consul" yaml:"consul"`
+	Server    *ServerConfig `mapstructure:"server" json:"server" yaml:"server"`
+	Mongo     *MongoConfig  `mapstructure:"mongo"  json:"mongo"  yaml:"mongo"`
+	Log       *LogConfig    `mapstructure:"log"    json:"log"    yaml:"log"`
+	Otel      *OtelConfig   `mapstructure:"otel"   json:"otel"   yaml:"otel"`
+	Repo      *Repo         `mapstructure:"repo"   json:"repo"   yaml:"repo"`
+	Consul    *Consul       `mapstructure:"consul" json:"consul" yaml:"consul"`
+	Pyroscope string        `mapstructure:"pyroscope" json:"pyroscope" yaml:"pyroscope"`
 }
 
 type Consul struct {
