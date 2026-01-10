@@ -56,3 +56,24 @@ func LoggerWithContext(ctx context.Context) *zap.Logger {
 	traceID := span.SpanContext().TraceID().String()
 	return Logger.With(zap.String("trace_id", traceID))
 }
+
+// ZapAdapter 将 zap.Logger 适配为 Pyroscope Logger 接口
+type ZapAdapter struct {
+	logger *zap.Logger
+}
+
+func NewZapAdapter(logger *zap.Logger) *ZapAdapter {
+	return &ZapAdapter{logger: logger}
+}
+
+func (z *ZapAdapter) Infof(msg string, args ...interface{}) {
+	z.logger.Sugar().Infof(msg, args...)
+}
+
+func (z *ZapAdapter) Debugf(msg string, args ...interface{}) {
+	z.logger.Sugar().Debugf(msg, args...)
+}
+
+func (z *ZapAdapter) Errorf(msg string, args ...interface{}) {
+	z.logger.Sugar().Errorf(msg, args...)
+}

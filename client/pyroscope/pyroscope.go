@@ -1,12 +1,15 @@
 package pyroscope
 
-import "github.com/grafana/pyroscope-go"
+import (
+	"github.com/bsonger/devflow-common/client/logging"
+	"github.com/grafana/pyroscope-go"
+)
 
 func InitPyroscope(name, address string) {
 	pyroscope.Start(pyroscope.Config{
 		ApplicationName: name,
 		ServerAddress:   address,
-		Logger:          pyroscope.StandardLogger,
+		Logger:          logging.NewZapAdapter(logging.Logger),
 
 		ProfileTypes: []pyroscope.ProfileType{
 			pyroscope.ProfileCPU,
@@ -14,6 +17,11 @@ func InitPyroscope(name, address string) {
 			pyroscope.ProfileAllocSpace,
 			pyroscope.ProfileInuseObjects,
 			pyroscope.ProfileInuseSpace,
+			pyroscope.ProfileGoroutines,
+			pyroscope.ProfileMutexCount,
+			pyroscope.ProfileMutexDuration,
+			pyroscope.ProfileBlockDuration,
+			pyroscope.ProfileBlockCount,
 		},
 	})
 }
