@@ -91,14 +91,15 @@ func (r *Repository) Delete(ctx context.Context, m model.MongoModel, id primitiv
 }
 
 func (r *Repository) List(ctx context.Context, m model.MongoModel, filter bson.M, results interface{}) error {
-	//ctx, span := otel.Start(ctx, "repo.list")
-	//defer span.End()
-
 	if filter == nil {
 		filter = bson.M{}
 	}
 
-	cur, err := r.collection(m).Find(ctx, filter)
+	// 按 created_at 字段倒序排序，如果没有这个字段可换成其他时间字段
+	findOpts := options.Find()
+	findOpts.SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	cur, err := r.collection(m).Find(ctx, filter, findOpts)
 	if err != nil {
 		return err
 	}
