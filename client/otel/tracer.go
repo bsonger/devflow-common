@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/attribute"
 	"os"
 	"time"
 
@@ -32,8 +33,10 @@ func InitOtel(ctx context.Context, config *model.OtelConfig) (func(context.Conte
 		ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(config.ServiceName),
-			semconv.ServiceNamespace("app"),
-			semconv.DeploymentEnvironmentName(os.Getenv("ENV")),
+			semconv.ServiceNamespace(os.Getenv("POD_NAMESPACE")),
+			semconv.DeploymentEnvironmentName(os.Getenv("Env")),
+			attribute.String("k8s.pod.name", os.Getenv("POD_NAME")),
+			attribute.String("k8s.node.name", os.Getenv("NODE_NAME")),
 		),
 	)
 	if err != nil {
