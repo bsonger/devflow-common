@@ -11,15 +11,37 @@ import (
 	"github.com/bsonger/devflow-common/model"
 )
 
+//
+// =======================
+// 全局 Logger（兜底）
+// =======================
+//
+
 var Logger *zap.Logger
 
-func InitZapLogger(ctx context.Context, config *model.LogConfig) {
+//
+// =======================
+// context key（私有，防冲突）
+// =======================
+//
+
+type loggerKeyType struct{}
+
+var loggerKey = loggerKeyType{}
+
+//
+// =======================
+// 初始化 Zap Logger
+// =======================
+//
+
+func InitZapLogger(config *model.LogConfig) {
 	if config == nil {
 		panic("InitZapLogger: log config is nil")
 	}
 
 	var cfg zap.Config
-	if config.Format == "json" {
+	if strings.ToLower(config.Format) == "json" {
 		cfg = zap.NewProductionConfig()
 	} else {
 		cfg = zap.NewDevelopmentConfig()
@@ -27,17 +49,15 @@ func InitZapLogger(ctx context.Context, config *model.LogConfig) {
 
 	// 默认 INFO
 	level := zapcore.InfoLevel
-
-	// 根据字符串设置日志级别
 	if config.Level != "" {
-		if err := level.Set(strings.ToLower(config.Level)); err != nil {
-			level = zapcore.InfoLevel
-		}
+		_ = level.Set(strings.ToLower(config.Level))
 	}
-
 	cfg.Level = zap.NewAtomicLevelAt(level)
 
-	logger, err := cfg.Build()
+	logger, err := cfg.Build(
+		zap.AddCaller(),
+		zap.AddCallerSkip(1),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -45,35 +65,90 @@ func InitZapLogger(ctx context.Context, config *model.LogConfig) {
 	Logger = logger
 }
 
-func LoggerWithContext(ctx context.Context) *zap.Logger {
+//
+// =======================
+// 请求级 Logger 注入（核心）
+// =======================
+//
+// ⚠️ 只在「请求入口」调用一次
+//
+
+func InjectLogger(ctx context.Context, base *zap.Logger) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if base == nil {
+		base = Logger
+	}
+
+	log := base
+
+	span := trace.SpanFromContext(ctx)
+	if sc := span.SpanContext(); sc.IsValid() {
+		log = log.With(
+			zap.String("trace_id", sc.TraceID().String()),
+			zap.String("span_id", sc.SpanID().String()),
+		)
+	}
+
+	return context.WithValue(ctx, loggerKey, log)
+}
+
+//
+// =======================
+// 从 context 取 logger（高频调用）
+// =======================
+//
+
+func LoggerFromContext(ctx context.Context) *zap.Logger {
 	if ctx == nil {
 		return Logger
 	}
-	span := trace.SpanFromContext(ctx)
-	if !span.SpanContext().IsValid() {
-		return Logger
+	if l, ok := ctx.Value(loggerKey).(*zap.Logger); ok {
+		return l
 	}
-	traceID := span.SpanContext().TraceID().String()
-	return Logger.With(zap.String("trace_id", traceID))
+	return Logger
 }
 
-// ZapAdapter 将 zap.Logger 适配为 Pyroscope Logger 接口
+//
+// =======================
+// 向后兼容（可逐步废弃）
+// =======================
+//
+
+func LoggerWithContext(ctx context.Context) *zap.Logger {
+	return LoggerFromContext(ctx)
+}
+
+//
+// =======================
+// ZapAdapter（给 Pyroscope / 第三方库用）
+// =======================
+//
+
 type ZapAdapter struct {
 	logger *zap.Logger
+	sugar  *zap.SugaredLogger
 }
 
 func NewZapAdapter(logger *zap.Logger) *ZapAdapter {
-	return &ZapAdapter{logger: logger}
+	if logger == nil {
+		logger = Logger
+	}
+	return &ZapAdapter{
+		logger: logger,
+		sugar:  logger.Sugar(),
+	}
 }
 
 func (z *ZapAdapter) Infof(msg string, args ...interface{}) {
-	z.logger.Sugar().Infof(msg, args...)
+	z.sugar.Infof(msg, args...)
 }
 
 func (z *ZapAdapter) Debugf(msg string, args ...interface{}) {
-	z.logger.Sugar().Debugf(msg, args...)
+	z.sugar.Debugf(msg, args...)
 }
 
 func (z *ZapAdapter) Errorf(msg string, args ...interface{}) {
-	z.logger.Sugar().Errorf(msg, args...)
+	z.sugar.Errorf(msg, args...)
 }
