@@ -13,6 +13,7 @@ type Config struct {
 	Repo      *Repo         `mapstructure:"repo"   json:"repo"   yaml:"repo"`
 	Consul    *Consul       `mapstructure:"consul" json:"consul" yaml:"consul"`
 	Pyroscope string        `mapstructure:"pyroscope" json:"pyroscope" yaml:"pyroscope"`
+	Env       string        `mapstructure:"env" json:"env" yaml:"env"`
 }
 
 type Consul struct {
