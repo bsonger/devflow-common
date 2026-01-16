@@ -4,7 +4,6 @@ import (
 	appv1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
 )
 
 type JobStatus string
@@ -35,13 +34,13 @@ type Job struct {
 	ManifestID      primitive.ObjectID `bson:"manifest_id" json:"manifest_id"`
 	ManifestName    string             `bson:"manifest_name" json:"manifest_name"`
 	Type            string             `bson:"type" json:"type"`
+	Env             string             `bson:"env" json:"env"`
 	Status          JobStatus          `bson:"status" json:"status"`
 }
 
 func (j *Job) CollectionName() string { return "job" }
 
 func (j *Job) GenerateApplication() *appv1.Application {
-	env := os.Getenv("Env")
 
 	manifestID := j.ManifestID.Hex()
 	app := &appv1.Application{
@@ -62,7 +61,7 @@ func (j *Job) GenerateApplication() *appv1.Application {
 					Parameters: []appv1.ApplicationSourcePluginParameter{
 						appv1.ApplicationSourcePluginParameter{
 							Name:    "env",
-							String_: &env,
+							String_: &j.Env,
 						},
 						appv1.ApplicationSourcePluginParameter{
 							Name:    "manifest-id",
