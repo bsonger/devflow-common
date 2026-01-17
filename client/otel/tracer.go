@@ -2,6 +2,8 @@ package otel
 
 import (
 	"context"
+	"errors"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"os"
 	"time"
@@ -20,36 +22,51 @@ import (
 )
 
 func InitOtel(ctx context.Context, config *model.OtelConfig) (func(context.Context) error, error) {
+	// ---- Validate ----
+	if config.Endpoint == "" {
+		return nil, errors.New("otel endpoint is required")
+	}
+	if config.ServiceName == "" {
+		return nil, errors.New("service name is required")
+	}
+
+	//// ---- Sampler ----
+	//ratio := config.SampleRatio
+	//if ratio <= 0 || ratio > 1 {
+	//	ratio = 1.0
+	//}
+
+	// ---- Exporter ----
 	exporter, err := otlptracegrpc.New(
 		ctx,
 		otlptracegrpc.WithEndpoint(config.Endpoint),
 		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithTimeout(5*time.Second),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := resource.New(
-		ctx,
-		resource.WithAttributes(
-			semconv.ServiceName(config.ServiceName),
-			semconv.ServiceNamespace(os.Getenv("POD_NAMESPACE")),
-			semconv.DeploymentEnvironmentName(os.Getenv("Env")),
-			attribute.String("k8s.pod.name", os.Getenv("POD_NAME")),
-			attribute.String("k8s.node.name", os.Getenv("NODE_NAME")),
-		),
-	)
+	// ---- Resource ----
+	res, err := buildResource(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
+	// ---- TracerProvider ----
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(res),
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithSampler(
+			sdktrace.ParentBased(
+				sdktrace.TraceIDRatioBased(1.0),
+			),
+		),
 	)
 
 	otel.SetTracerProvider(tp)
 
+	// ---- Propagator ----
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{},
@@ -61,8 +78,10 @@ func InitOtel(ctx context.Context, config *model.OtelConfig) (func(context.Conte
 		"OpenTelemetry tracing initialized",
 		zap.String("service", config.ServiceName),
 		zap.String("endpoint", config.Endpoint),
+		zap.Float64("sample_ratio", 1.0),
 	)
 
+	// ---- Shutdown ----
 	shutdown := func(ctx context.Context) error {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
@@ -71,7 +90,40 @@ func InitOtel(ctx context.Context, config *model.OtelConfig) (func(context.Conte
 
 	return shutdown, nil
 }
-
 func Start(ctx context.Context, tracerName, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	return otel.Tracer(tracerName).Start(ctx, spanName, opts...)
+}
+
+func buildResource(ctx context.Context, cfg *model.OtelConfig) (*resource.Resource, error) {
+	attrs := []attribute.KeyValue{
+		// ---- Service ----
+		semconv.ServiceName(cfg.ServiceName),
+		semconv.ServiceNamespace(getEnv("POD_NAMESPACE", "default")),
+		semconv.ServiceVersion(getEnv("SERVICE_VERSION", "unknown")),
+		semconv.ServiceInstanceID(getEnv("POD_NAME", uuid.NewString())),
+
+		// ---- Environment ----
+		semconv.DeploymentEnvironmentName(getEnv("ENV", "unknown")),
+
+		// ---- Kubernetes ----
+		attribute.String("k8s.cluster.name", getEnv("CLUSTER_NAME", "unknown")),
+		attribute.String("k8s.namespace.name", getEnv("POD_NAMESPACE", "default")),
+		attribute.String("k8s.pod.name", getEnv("POD_NAME", "unknown")),
+		attribute.String("k8s.container.name", getEnv("CONTAINER_NAME", "unknown")),
+		attribute.String("k8s.node.name", getEnv("NODE_NAME", "unknown")),
+	}
+
+	return resource.New(
+		ctx,
+		resource.WithFromEnv(),      // OTEL_RESOURCE_ATTRIBUTES
+		resource.WithTelemetrySDK(), // otel.sdk.*
+		resource.WithAttributes(attrs...),
+	)
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
