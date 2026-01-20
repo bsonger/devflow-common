@@ -3,7 +3,6 @@ package otel
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"os"
 	"time"
@@ -100,7 +99,6 @@ func buildResource(ctx context.Context, cfg *model.OtelConfig) (*resource.Resour
 		semconv.ServiceName(cfg.ServiceName),
 		semconv.ServiceNamespace(getEnv("POD_NAMESPACE", "default")),
 		semconv.ServiceVersion(getEnv("SERVICE_VERSION", "unknown")),
-		semconv.ServiceInstanceID(getEnv("POD_NAME", uuid.NewString())),
 
 		// ---- Environment ----
 		semconv.DeploymentEnvironmentName(getEnv("ENV", "unknown")),
