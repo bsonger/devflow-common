@@ -43,7 +43,9 @@ type Manifest struct {
 	ApplicationName string              `json:"application_name" bson:"application_name"`
 	Branch          string              `json:"branch" bson:"branch"`     // git branch
 	GitRepo         string              `json:"git_repo" bson:"git_repo"` // 对应 Application repo
-	Replica         *int32              `bson:"replica,omitempty" json:"replica,omitempty"`
+	CommitHash      string              `json:"commit_hash,omitempty"  bson:"commit_hash,omitempty"`
+	Replica         *int32              `bson:"replica" json:"replica"`
+	Digest          string              `json:"digest,omitempty" bson:"digest,omitempty"`
 	Type            ReleaseType         `bson:"type" json:"type"`
 	ConfigMaps      []*ConfigMap        `bson:"config_maps,omitempty" json:"config_maps,omitempty"`
 	Service         Service             `bson:"service" json:"service"`
