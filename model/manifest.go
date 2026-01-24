@@ -147,6 +147,13 @@ func (m *Manifest) GeneratePipelineRunParams() []tknv1.Param {
 	// 构造 PipelineRun 参数
 	prParams := []tknv1.Param{
 		{
+			Name: "manifest-id",
+			Value: tknv1.ParamValue{
+				Type:      tknv1.ParamTypeString,
+				StringVal: m.ID.Hex(),
+			},
+		},
+		{
 			Name: "git-url",
 			Value: tknv1.ParamValue{
 				Type:      tknv1.ParamTypeString,

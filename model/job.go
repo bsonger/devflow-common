@@ -15,6 +15,8 @@ const (
 	JobFailed      JobStatus = "Failed"
 	JobRollingBack JobStatus = "RollingBack"
 	JobRolledBack  JobStatus = "RolledBack"
+	JobSyncing     JobStatus = "Syncing"
+	JobSyncFailed  JobStatus = "SyncFailed"
 
 	JobInstall  string = "Install"
 	JobUpgrade  string = "Upgrade"
