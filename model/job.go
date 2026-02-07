@@ -45,6 +45,7 @@ func (j *Job) CollectionName() string { return "job" }
 func (j *Job) GenerateApplication() *appv1.Application {
 
 	manifestID := j.ManifestID.Hex()
+	jobID := j.ID.Hex()
 	app := &appv1.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
@@ -61,13 +62,17 @@ func (j *Job) GenerateApplication() *appv1.Application {
 				Plugin: &appv1.ApplicationSourcePlugin{
 					Name: "plugin",
 					Parameters: []appv1.ApplicationSourcePluginParameter{
-						appv1.ApplicationSourcePluginParameter{
+						{
 							Name:    "env",
 							String_: &j.Env,
 						},
-						appv1.ApplicationSourcePluginParameter{
+						{
 							Name:    "manifest-id",
 							String_: &manifestID,
+						},
+						{
+							Name:    "job-id",
+							String_: &jobID,
 						},
 					},
 				},
@@ -75,12 +80,6 @@ func (j *Job) GenerateApplication() *appv1.Application {
 			Destination: appv1.ApplicationDestination{
 				Server:    "https://kubernetes.default.svc",
 				Namespace: j.ProjectName,
-			},
-			SyncPolicy: &appv1.SyncPolicy{
-				Automated: &appv1.SyncPolicyAutomated{
-					Prune:    true, // 自动删除
-					SelfHeal: true, // 自动修复漂移
-				},
 			},
 		},
 	}
