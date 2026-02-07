@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"go.opentelemetry.io/otel/trace"
@@ -47,6 +48,11 @@ func InitZapLogger(config *model.LogConfig) {
 		cfg = zap.NewDevelopmentConfig()
 	}
 
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	cfg.EncoderConfig.StacktraceKey = "stacktrace"
+
 	// 默认 INFO
 	level := zapcore.InfoLevel
 	if config.Level != "" {
@@ -54,15 +60,20 @@ func InitZapLogger(config *model.LogConfig) {
 	}
 	cfg.Level = zap.NewAtomicLevelAt(level)
 
+	cfg.DisableStacktrace = false
+	cfg.DisableCaller = false
+	cfg.Development = strings.ToLower(config.Format) != "json"
+
 	logger, err := cfg.Build(
 		zap.AddCaller(),
 		zap.AddCallerSkip(1),
+		zap.AddStacktrace(zapcore.ErrorLevel),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	Logger = logger
+	Logger = withEnvFields(logger)
 }
 
 //
@@ -151,4 +162,31 @@ func (z *ZapAdapter) Debugf(msg string, args ...interface{}) {
 
 func (z *ZapAdapter) Errorf(msg string, args ...interface{}) {
 	z.sugar.Errorf(msg, args...)
+}
+
+func withEnvFields(l *zap.Logger) *zap.Logger {
+	fields := []zap.Field{
+		envField("service", "SERVICE_NAME"),
+		envField("version", "SERVICE_VERSION"),
+		envField("env", "ENV"),
+		envField("pod", "POD_NAME"),
+		envField("namespace", "POD_NAMESPACE"),
+		envField("node", "NODE_NAME"),
+		envField("cluster", "CLUSTER_NAME"),
+	}
+
+	out := l
+	for _, f := range fields {
+		if f.Key != "" {
+			out = out.With(f)
+		}
+	}
+	return out
+}
+
+func envField(key, envKey string) zap.Field {
+	if v := os.Getenv(envKey); v != "" {
+		return zap.String(key, v)
+	}
+	return zap.Field{}
 }
