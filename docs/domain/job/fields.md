@@ -8,6 +8,7 @@
 - `manifest_name` manifest 名称
 - `type` 任务类型：`Install` / `Upgrade` / `Rollback`
 - `env` 环境
+- `steps` 任务步骤列表（`JobStep`）
 - `status` 状态：`Pending` / `Running` / `Succeeded` / `Failed` / `RollingBack` / `RolledBack` / `Syncing` / `SyncFailed`
 
 ## 相关链接

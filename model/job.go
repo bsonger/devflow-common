@@ -4,6 +4,7 @@ import (
 	appv1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type JobStatus string
@@ -38,6 +39,15 @@ type Job struct {
 	Type            string             `bson:"type" json:"type"`
 	Env             string             `bson:"env" json:"env"`
 	Status          JobStatus          `bson:"status" json:"status"`
+}
+
+type JobStep struct {
+	Name      string     `bson:"name" json:"name"`
+	Progress  int32      `bson:"progress" json:"progress"`
+	Status    StepStatus `bson:"status" json:"status"`
+	Message   string     `bson:"message,omitempty" json:"message,omitempty"`
+	StartTime *time.Time `bson:"start_time,omitempty" json:"start_time,omitempty"`
+	EndTime   *time.Time `bson:"end_time,omitempty" json:"end_time,omitempty"`
 }
 
 func (j *Job) CollectionName() string { return "job" }
